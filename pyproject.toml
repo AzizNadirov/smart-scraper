@@ -1,0 +1,14 @@
+[project]
+name = "smart-scraper"
+version = "0.1.0b0"
+description = "Smart site parser"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ipykernel>=6.29.5",
+    "ipython>=8.29.0",
+    "openpyxl>=3.1.5",
+    "pandas>=2.2.3",
+    "pyarrow>=18.0.0",
+    "scrapy>=2.11.2",
+]
