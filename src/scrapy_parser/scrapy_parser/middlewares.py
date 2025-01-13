@@ -1,19 +1,13 @@
-# Define here the models for your spider middleware
-#
-# See documentation in:
-# https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-
 from scrapy import signals
-
-# useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 
+import cloudscraper
+from scrapy.http import HtmlResponse
 
-class BeatySpiderMiddleware:
-    # Not all methods need to be defined. If a method is not defined,
-    # scrapy acts as if the spider middleware does not modify the
-    # passed objects.
+from scrapy_parser.configs import configs
 
+
+class ScrapyParserSpiderMiddleware:
     @classmethod
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
@@ -56,11 +50,8 @@ class BeatySpiderMiddleware:
         spider.logger.info("Spider opened: %s" % spider.name)
 
 
-class BeatyDownloaderMiddleware:
-    # Not all methods need to be defined. If a method is not defined,
-    # scrapy acts as if the downloader middleware does not modify the
-    # passed objects.
-
+class ScrapyParserDownloaderMiddleware:
+    cloudflare_scraper = cloudscraper.create_scraper()
     @classmethod
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
@@ -81,13 +72,15 @@ class BeatyDownloaderMiddleware:
         return None
 
     def process_response(self, request, response, spider):
-        # Called with the response returned from the downloader.
-
-        # Must either;
-        # - return a Response object
-        # - return a Request object
-        # - or raise IgnoreRequest
-        return response
+        request_url = request.url
+        response_status = response.status
+        if response_status not in configs.SCRAPYCLOUD_STATUSES:
+            return response
+        
+        spider.logger.info("Cloudflare detected. Using cloudscraper on URL: %s", request_url)
+        cflare_response = self.cloudflare_scraper.get(request_url)
+        cflare_res_transformed = HtmlResponse(url = request_url, body=cflare_response.text, encoding='utf-8')
+        return cflare_res_transformed
 
     def process_exception(self, request, exception, spider):
         # Called when a download handler or a process_request()

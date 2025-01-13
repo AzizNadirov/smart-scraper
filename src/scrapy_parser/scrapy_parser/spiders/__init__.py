@@ -1,0 +1,1 @@
+from .scrapy_spider import ScrapyRandomisedCrawlerSpider
